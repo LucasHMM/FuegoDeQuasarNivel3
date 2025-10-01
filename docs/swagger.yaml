@@ -1,0 +1,178 @@
+basePath: /api
+definitions:
+  handlers.Position:
+    description: Coordenadas de la fuente
+    properties:
+      x:
+        example: 426.4001
+        type: number
+      "y":
+        example: -252.80016
+        type: number
+    type: object
+  handlers.SatelliteInfo:
+    description: Información individual de un satélite
+    properties:
+      distance:
+        example: 927.75
+        type: number
+      message:
+        example:
+        - '["este"'
+        - ' ""'
+        - ' ""'
+        - ' "mensaje"'
+        - ' ""]'
+        items:
+          type: string
+        type: array
+      name:
+        example: kenobi
+        type: string
+    type: object
+  handlers.TopSecretRequest:
+    description: Datos de los satélites para decodificar mensaje y posición
+    properties:
+      satellites:
+        items:
+          $ref: '#/definitions/handlers.SatelliteInfo'
+        type: array
+    type: object
+  handlers.TopSecretResponse:
+    description: Respuesta con posición y mensaje decodificado
+    properties:
+      message:
+        example: este es un mensaje secreto
+        type: string
+      position:
+        $ref: '#/definitions/handlers.Position'
+    type: object
+  handlers.TopSecretSplitRequest:
+    properties:
+      distance:
+        type: number
+      message:
+        items:
+          type: string
+        type: array
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API para el desafío de nivel 3 de Fuego de Quasar.
+  title: Fuego de Quasar API
+  version: "1.0"
+paths:
+  /topsecret:
+    post:
+      consumes:
+      - application/json
+      description: Recibe información de los satélites y retorna posición y mensaje
+      parameters:
+      - description: Datos de los satélites
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.TopSecretRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ejemplo de respuesta" example({"position":{"x":426.4001,"y":-252.80016},"message":"este
+            es un mensaje secreto"})
+          schema:
+            $ref: '#/definitions/handlers.TopSecretResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Decodifica mensaje y posición
+      tags:
+      - topsecret
+  /topsecret_split:
+    get:
+      consumes:
+      - application/json
+      description: Recupera la posición y mensaje usando los datos guardados de los
+        satélites
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.TopSecretResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Decodifica mensaje y posición usando información parcial
+      tags:
+      - topsecret_split
+  /topsecret_split/{satellite_name}:
+    post:
+      consumes:
+      - application/json
+      description: Permite guardar la distancia y mensaje de un satélite individualmente
+      parameters:
+      - description: Nombre del satélite
+        in: path
+        name: satellite_name
+        required: true
+        type: string
+      - description: Distancia y mensaje del satélite
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.TopSecretSplitRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Actualización exitosa
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Guarda información parcial de un satélite
+      tags:
+      - topsecret_split
+swagger: "2.0"

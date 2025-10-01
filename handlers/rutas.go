@@ -8,24 +8,32 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// TopSecretRequest representa el payload para /topsecret
+// @Description Datos de los satélites para decodificar mensaje y posición
 type TopSecretRequest struct {
 	Satellites []SatelliteInfo `json:"satellites"`
 }
 
+// SatelliteInfo representa la información de un satélite
+// @Description Información individual de un satélite
 type SatelliteInfo struct {
-	Name     string   `json:"name"`
-	Distance float32  `json:"distance"`
-	Message  []string `json:"message"`
+	Name     string   `json:"name" example:"kenobi"`
+	Distance float32  `json:"distance" example:"927.75"`
+	Message  []string `json:"message" example:"[\"este\", \"\", \"\", \"mensaje\", \"\"]"`
 }
 
+// TopSecretResponse representa la respuesta de /topsecret
+// @Description Respuesta con posición y mensaje decodificado
 type TopSecretResponse struct {
 	Position Position `json:"position"`
-	Message  string   `json:"message"`
+	Message  string   `json:"message" example:"este es un mensaje secreto"`
 }
 
+// Position representa coordenadas X e Y
+// @Description Coordenadas de la fuente
 type Position struct {
-	X float32 `json:"x"`
-	Y float32 `json:"y"`
+	X float32 `json:"x" example:"426.4001"`
+	Y float32 `json:"y" example:"-252.80016"`
 }
 
 type TopSecretSplitRequest struct {
@@ -33,18 +41,27 @@ type TopSecretSplitRequest struct {
 	Message  []string `json:"message"`
 }
 
+// SetupRoutes configura las rutas HTTP de la API
 func SetupRoutes(router *gin.Engine, repo repository.RepositoryService) {
-
-	// POST /topsecret/
+	// POST /topsecret
 	router.POST("/topsecret", handleTopSecret(repo))
-
 	// POST /topsecret_split/{satellite_name}
 	router.POST("/topsecret_split/:satellite_name", handleTopSecretSplit(repo))
-
-	// GET /topsecret_split/
+	// GET /topsecret_split
 	router.GET("/topsecret_split", handleGetTopSecretSplit(repo))
 }
 
+// @Summary Decodifica mensaje y posición
+// @Description Recibe información de los satélites y retorna posición y mensaje
+// @Tags topsecret
+// @Accept json
+// @Produce json
+// @Param request body TopSecretRequest true "Datos de los satélites" example({"satellites":[{"name":"kenobi","distance":927.75,"message":["este","","","mensaje",""]},{"name":"skywalker","distance":360,"message":["","es","","","secreto"]},{"name":"sato","distance":360,"message":["este","","un","",""]}]})
+// @Success 200 {object} TopSecretResponse "Ejemplo de respuesta" example({"position":{"x":426.4001,"y":-252.80016},"message":"este es un mensaje secreto"})
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /topsecret [post]
 func handleTopSecret(repo repository.RepositoryService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request TopSecretRequest
@@ -126,6 +143,18 @@ func handleTopSecret(repo repository.RepositoryService) gin.HandlerFunc {
 	}
 }
 
+// @Summary Guarda información parcial de un satélite
+// @Description Permite guardar la distancia y mensaje de un satélite individualmente
+// @Tags topsecret_split
+// @Accept json
+// @Produce json
+// @Param satellite_name path string true "Nombre del satélite"
+// @Param request body TopSecretSplitRequest true "Distancia y mensaje del satélite"
+// @Success 200 "Actualización exitosa"
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /topsecret_split/{satellite_name} [post]
 func handleTopSecretSplit(repo repository.RepositoryService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		satelliteName := c.Param("satellite_name")
@@ -157,6 +186,15 @@ func handleTopSecretSplit(repo repository.RepositoryService) gin.HandlerFunc {
 	}
 }
 
+// @Summary Decodifica mensaje y posición usando información parcial
+// @Description Recupera la posición y mensaje usando los datos guardados de los satélites
+// @Tags topsecret_split
+// @Accept json
+// @Produce json
+// @Success 200 {object} TopSecretResponse
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /topsecret_split [get]
 func handleGetTopSecretSplit(repo repository.RepositoryService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Obtener todos los satélites

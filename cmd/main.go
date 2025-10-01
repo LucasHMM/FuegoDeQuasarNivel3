@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	_ "fuegodequasar/docs"
 	"fuegodequasar/handlers"
 	"fuegodequasar/internal/platform/repository"
 	"log"
@@ -11,9 +12,17 @@ import (
 	"syscall"
 	"time"
 
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
 	"github.com/gin-gonic/gin"
 )
 
+// @title Fuego de Quasar API
+// @version 1.0
+// @description API para el desafío de nivel 3 de Fuego de Quasar.
+// @host localhost:8080
+// @BasePath /api
 func main() {
 	// Configurar el modo de Gin basado en el ambiente
 	if os.Getenv("ENV") == "production" {
@@ -43,6 +52,9 @@ func main() {
 
 	// Configurar las rutas
 	handlers.SetupRoutes(router, repo)
+
+	// Añadir la ruta de Swagger
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Añadir ruta de health check para Cloud Run
 	router.GET("/health", func(c *gin.Context) {
