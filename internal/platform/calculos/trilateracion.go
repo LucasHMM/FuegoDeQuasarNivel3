@@ -50,6 +50,7 @@ func GetLocation(p1, p2, p3 Point32, r1, r2, r3 float32) Point32 {
 	pos, err := Trilateracion(p1f, p2f, p3f, r1f, r2f, r3f, tol)
 	if err != nil {
 		// Devolver un valor por defecto cuando falla:
+		fmt.Println("Trilateracion error:", err) // <-- Agrega este log
 		return Point32{X: 0, Y: 0}
 	}
 
@@ -68,13 +69,17 @@ func GetLocation(p1, p2, p3 Point32, r1, r2, r3 float32) Point32 {
 func Trilateracion(p1, p2, p3 Point, r1, r2, r3 float64, tol float64) (Point, error) {
 
 	if !checkPairwiseIntersection(p1, p2, r1, r2) {
-		return Point{}, fmt.Errorf("las circunferencias 1 y 2 no pueden intersectar (pareja incoherente)")
+		return Point{}, fmt.Errorf(
+			"las circunferencias 1 y 2 no pueden intersectar (pareja incoherente): p1=(%.2f,%.2f) r1=%.2f, p2=(%.2f,%.2f) r2=%.2f",
+			p1.X, p1.Y, r1, p2.X, p2.Y, r2)
 	}
 	if !checkPairwiseIntersection(p1, p3, r1, r3) {
-		return Point{}, fmt.Errorf("las circunferencias 1 y 3 no pueden intersectar (pareja incoherente)")
+		return Point{}, fmt.Errorf("las circunferencias 1 y 3 no pueden intersectar (pareja incoherente): p1=(%.2f,%.2f) r1=%.2f, p3=(%.2f,%.2f) r3=%.2f",
+			p1.X, p1.Y, r1, p3.X, p3.Y, r3)
 	}
 	if !checkPairwiseIntersection(p2, p3, r2, r3) {
-		return Point{}, fmt.Errorf("las circunferencias 2 y 3 no pueden intersectar (pareja incoherente)")
+		return Point{}, fmt.Errorf("las circunferencias 2 y 3 no pueden intersectar (pareja incoherente): p2=(%.2f,%.2f) r2=%.2f, p3=(%.2f,%.2f) r3=%.2f",
+			p2.X, p2.Y, r2, p3.X, p3.Y, r3)
 	}
 
 	// Construimos las ecuaciones lineales (resta de circunferencias)

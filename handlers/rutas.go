@@ -34,18 +34,15 @@ type TopSecretSplitRequest struct {
 }
 
 func SetupRoutes(router *gin.Engine, repo repository.RepositoryService) {
-	// Grupo de rutas para el servicio
-	api := router.Group("/api")
-	{
-		// POST /topsecret/
-		api.POST("/topsecret", handleTopSecret(repo))
 
-		// POST /topsecret_split/{satellite_name}
-		api.POST("/topsecret_split/:satellite_name", handleTopSecretSplit(repo))
+	// POST /topsecret/
+	router.POST("/topsecret", handleTopSecret(repo))
 
-		// GET /topsecret_split/
-		api.GET("/topsecret_split", handleGetTopSecretSplit(repo))
-	}
+	// POST /topsecret_split/{satellite_name}
+	router.POST("/topsecret_split/:satellite_name", handleTopSecretSplit(repo))
+
+	// GET /topsecret_split/
+	router.GET("/topsecret_split", handleGetTopSecretSplit(repo))
 }
 
 func handleTopSecret(repo repository.RepositoryService) gin.HandlerFunc {
@@ -57,10 +54,20 @@ func handleTopSecret(repo repository.RepositoryService) gin.HandlerFunc {
 			return
 		}
 
-		// Actualizar información de los satélites
+		// Actualizar información de los satélites usando posición fija del repositorio
 		for _, sat := range request.Satellites {
+			// Obtener la posición fija desde el repositorio
+			existing, err := repo.GetSatellite(sat.Name)
+			var pos repository.Point
+			if err == nil {
+				pos = existing.Position
+			} else {
+				// Si no existe, usar posición por defecto (el repo ya lo hace en New())
+				pos = repository.Point{}
+			}
 			satellite := repository.Satellite{
 				Name:     sat.Name,
+				Position: pos, // posición fija
 				Distance: sat.Distance,
 				Message:  sat.Message,
 			}
